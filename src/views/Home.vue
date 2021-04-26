@@ -3,15 +3,21 @@
         <el-header>
             <strong>后台管理系统</strong>
             <div class="header-avatar">
-                <el-avatar size="medium" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                <el-avatar size="medium" :src="userInfo.photo"></el-avatar>
                 <el-dropdown>
                   <span class="el-dropdown-link">
-                    用户<i class="el-icon-arrow-down el-icon--right"></i>
+                    {{userInfo.username}}<i class="el-icon-arrow-down el-icon--right"></i>
                   </span>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item>个人中心</el-dropdown-item>
-                            <el-dropdown-item>退出</el-dropdown-item>
+                            <el-dropdown-item @click.native="userCenter">
+                                <el-icon class="el-icon-user"></el-icon>
+                                个人中心
+                            </el-dropdown-item>
+                            <el-dropdown-item @click.native="logout">
+                                <el-icon class="el-icon-setting"></el-icon>
+                                退出
+                            </el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
@@ -34,6 +40,35 @@
         name: "Home",
         components: {
             SideMenu
+        },
+        data(){
+            return{
+                userInfo:{
+                    id:'',
+                    username:'',
+                    photo:''
+                }
+            }
+        },
+        created() {
+            this.getUserInfo()
+        },
+        methods:{
+            getUserInfo(){
+                this.$axios.get('/userInfo').then(res=>{
+                    this.userInfo=res.data.data
+                })
+            },
+            userCenter(){
+                this.$router.push('/userCenter')
+            },
+            logout(){
+                this.$axios.post('/logout').then(res=>{
+                    localStorage.clear()
+                    sessionStorage.clear()
+                    this.$store.commit('resetState')
+                })
+            }
         }
     }
 </script>
@@ -73,6 +108,10 @@
         color: #333;
         text-align: center;
         line-height: 160px;
+    }
+    a{
+        text-decoration: none;
+        color: black;
     }
 
 

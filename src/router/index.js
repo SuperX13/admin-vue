@@ -32,6 +32,10 @@ const routes = [
         path: '/pageThree',
         name: 'PageThree',
         component: PageThree
+      },{
+        path: '/userCenter',
+        name: 'UserCenter',
+        component: () =>import('@/views/UserCenter.vue')
       }
     ]
   },
