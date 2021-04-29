@@ -2,7 +2,7 @@
 
     <div>
         <el-space wrap>
-        <el-card class="box-card" style="width:50%"> <div id="chartOne" :style="{width:'800px',height:'600px'}"></div></el-card>
+        <el-card class="box-card" style="width:50%" shadow="always"> <div id="chartOne" :style="{width:'800px',height:'600px'}"></div></el-card>
             <el-card class="box-card" style="width:50%">aaaaaaaa</el-card>
         </el-space>
     </div>
