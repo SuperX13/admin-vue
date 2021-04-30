@@ -9,7 +9,7 @@
                     </el-input>
                 </el-col>
                 <el-col :span="2">
-                    <el-button type="primary" >添加用户</el-button>
+                    <el-button type="primary" @click="insertEditDialog('insertData')" >添加用户</el-button>
                 </el-col>
             </el-row>
             <el-table :data="tableData" stripe border>
@@ -26,8 +26,8 @@
             </el-table-column>
         </el-table></el-card>
         <el-dialog title="修改用户信息" :visible.sync="editDialogVisible" width="25%"@colse="editDialogClosed">
-            <el-form :model="editForm"  ref="editFormRef" label-width="70px">
-                <el-form-item label="ID" prop="ID">
+            <el-form :model="editForm" :rules="editFormRules"  ref="editForm" label-width="70px">
+                <el-form-item label="ID" prop="id">
                     <el-input v-model="editForm.id" disabled></el-input>
                 </el-form-item>
                 <el-form-item label="姓名" prop="name">
@@ -41,33 +41,100 @@
                 </el-form-item>
             </el-form>
             <span slot="footer" class="dialog-footer">
-        <el-button @click="editDialogClosed">取 消</el-button>
-        <el-button type="primary" @click="editUserInfo">修 改</el-button>
+        <el-button @click="editDialogClosed('editForm')">取 消</el-button>
+        <el-button type="primary" @click="editUserInfo('editForm')">修 改</el-button>
+      </span>
+        </el-dialog>
+        <el-dialog title="添加用户信息" :visible.sync="insetDialogVisible" width="25%" @colse="insertDialogClosed">
+            <el-form :model="insertData"   ref="insertData" label-width="70px">
+                <el-form-item label="ID" prop="id">
+                    <el-input v-model="insertData.id"></el-input>
+                </el-form-item>
+                <el-form-item label="姓名" prop="name">
+                    <el-input v-model="insertData.name"></el-input>
+                </el-form-item>
+                <el-form-item label="性别" prop="gender">
+                    <el-input v-model="insertData.gender"></el-input>
+                </el-form-item>
+                <el-form-item label="出生年月" prop="birthday">
+                    <el-input v-model="insertData.birthday"></el-input>
+                </el-form-item>
+                <el-form-item label="tid" prop="tid">
+                    <el-input v-model="insertData.tid"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+        <el-button @click="insertDialogClosed('insertData')">取 消</el-button>
+        <el-button type="primary" @click="insertUserInfo('insertData')">添 加</el-button>
       </span>
         </el-dialog>
     </div>
-
 </template>
 
 <script>
     export default {
         name: "PageTwo",
         methods:{
-            async showEditDialog(id){
+             showEditDialog(id){
                 let _this=this
                 axios.get("http://localhost:8181/student/find/"+id).then(function (response) {
                     _this.editForm=response.data
                     _this.editDialogVisible = true;
                 })
             },
-            // 关闭窗口
-            editDialogClosed(){
-                this.editDialogVisible = false;
+            //打开添加框
+            insertEditDialog(insertData){
+                this.insetDialogVisible = true;
+                this.$refs[insertData].resetFields();
+            },
+            //确认添加
+            insertUserInfo(insertData){
+                this.$refs[insertData].validate((valid) => {
+                    if (valid){
+                    let _this = this
+                    axios.post("http://localhost:8181/student/insert", this.insertData).then(function (response) {
+                        console.log(response)
+                        if (response.data) {
+                            _this.getUserList()
+                            _this.$notify({
+                                title: '成功',
+                                message: '添加成功',
+                                type: 'success'
+                            })
+                            _this.insertDialogClosed()
+                        }
 
+                    })
+                    }
+                })
+            },
+            // 关闭添加用户窗口
+            insertDialogClosed(){
+                this.insetDialogVisible = false;
+            },
+            // 关闭修改用户窗口
+            editDialogClosed(editForm){
+                this.editDialogVisible = false;
+                this.$refs[editForm].resetFields();
             },
             // 确认修改
-            editUserInfo(){
-
+            editUserInfo(editForm){
+                this.$refs[editForm].validate((valid) => {
+                    if (valid) {
+                    let _this = this
+                    axios.put("http://localhost:8181/student/update", this.editForm).then(function (response) {
+                        if (response.data) {
+                            _this.getUserList()
+                            _this.$notify({
+                                title: '成功',
+                                message: '修改成功',
+                                type: 'success'
+                            })
+                            _this.editDialogClosed()
+                        }
+                    })
+                }
+                })
             },
             getUserList(){
                 let _this=this
@@ -102,14 +169,43 @@
             return {
                 // 控制修改用户对话框显示/隐藏
                 editDialogVisible:false,
+                // 控制添加用户对话框显示/隐藏
+                insetDialogVisible:false,
                 value: new Date(),
-                tableData: [{
+                tableData: {
                     id: '',
                     name: '',
                     gender: '',
                     birthday: '',
-                }],
-                editForm:{},
+                },
+                insertData: {
+                    id: '',
+                    name: '',
+                    gender: '',
+                    birthday: '',
+                    tid:"",
+                },
+                editForm:{
+                    id: '',
+                    name: '',
+                    gender: '',
+                    birthday: '',
+                },
+                // 修改用户表单验证规则
+                editFormRules:{
+                    name:[
+                        { required: true, message: "请输入姓名", trigger: "blur" },
+                        { min: 2, max: 4, message: "长度在 2 到 4 个字符", trigger: "blur" }
+                    ],
+                    gender:[
+                        { required: true, message: "请输入性别", trigger: "blur" },
+                        { min: 1, max: 1, message: "请输入正确性别", trigger: "blur" }
+                    ],
+                    birthday:[
+                        { required: true, message: "请输入出生", trigger: "blur" },
+                        { min: 5, max: 15, message: "请输入正确格式", trigger: "blur" }
+                    ],
+                },
             }
         },
         created() {
